@@ -5,4 +5,4 @@ Related works of
 
 ## Sample Data
 
-Our sampkle data are grabbed from http://e-service.cwb.gov.tw/HistoryDataQuery/index.jsp
+Our sample data are grabbed from http://e-service.cwb.gov.tw/HistoryDataQuery/index.jsp
