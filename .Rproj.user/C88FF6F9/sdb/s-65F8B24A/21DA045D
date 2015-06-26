@@ -1,0 +1,18 @@
+{
+    "contents" : "library(XML)\nlibrary(whisker)\nlibrary(data.table)\nstations = list(臺北 = \"466920\", \n                臺中 = \"467490\",\n                高雄 = \"467440\",\n                花蓮 = \"466990\"\n                )\nmonths = substr(as.character(seq.Date(as.Date(\"2012-06-01\"), as.Date(\"2015-05-01\"), by=\"months\")), 1, 7)\ntempurl = \"http://e-service.cwb.gov.tw/HistoryDataQuery/MonthDataController.do?command=viewMain&station={{station}}&datepicker={{month}}\"\n\nfor (i in 1:length(stations)) {\n    dts = list()\n    station_name = names(stations[i])\n    station = stations[[i]]\n    for (month in months) {\n        url =whisker.render(tempurl)\n        print(url)\n        tables = readHTMLTable(url, encoding=\"UTF-8\", stringsAsFactor = FALSE)\n        temptable = tables$MyTable\n        colnames(temptable) = as.vector(as.matrix(temptable[2,]))\n        temptable = temptable[3:nrow(temptable), ]\n        filename = whisker.render(\"data/{{station_name}}_{{month}}.csv\")\n        print(filename)\n        write.csv(temptable, filename, row.names = FALSE)\n        Sys.sleep(rpois(1, 3))\n    }\n}\n",
+    "created" : 1435234104986.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "538597237",
+    "id" : "21DA045D",
+    "lastKnownWriteTime" : 1435314567,
+    "path" : "~/Documents/Projects/dsc2015/get_data.R",
+    "project_path" : "get_data.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "type" : "r_source"
+}
