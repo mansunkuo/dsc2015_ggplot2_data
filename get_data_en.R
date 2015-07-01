@@ -13,8 +13,8 @@ for (i in 1:length(stations_en)) {
         filename_out = whisker.render("data/{{station_name_en}}_{{month}}.csv")
         temptable = read.csv(filename_in)
         header_all = colnames(temptable)
-        header_all
         header_en = gsub("^[^A-Z]*|A型蒸發量\\.mm\\.|X10分鐘最大降水量|\\.mm\\.|X10分鐘最大降水起始時間|(\\.)*LST(\\.)*|MJ\\.*|Pa\\.*", "", header_all)
-        header_en
+        colnames(temptable) = header_en
+        write.csv(temptable, filename_out, row.names = FALSE)
     }
 }
