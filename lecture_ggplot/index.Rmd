@@ -1,11 +1,12 @@
 ---
 title: "R Visualization"
 author: "Kyle Chung, Ben Chen, Mansun Kuo"
-date: '`r Sys.Date()`'
+date: '`r Sys.Date()`<br><br><a rel="license" href="http://creativecommons.org/licenses/by-nc-sa/4.0/"><img alt="創用 CC 授權條款" style="border-width:0" src="img/by-nc-sa-4.0-88x31.png" /></a>'
 output:
   ioslides_presentation:
     fig_height: 4
     fig_width: 7
+    logo: img/Taiwan-R-logo.png
     widescreen: yes
 subtitle: Using ggplot2
 ---
