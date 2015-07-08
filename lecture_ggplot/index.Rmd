@@ -6,6 +6,7 @@ output:
   ioslides_presentation:
     fig_height: 4
     fig_width: 7
+    highlight: default
     logo: img/Taiwan-R-logo.png
     widescreen: yes
 subtitle: Using ggplot2
@@ -47,7 +48,7 @@ ggplot(movies1, aes(x=budget, y=rating)) + geom_point(shape=5, size=3)
 
 
 ## All point shape types in `ggplot2`
-```{r,fig.align='center', fig.retina=2, fig.height=7, fig.width=7, echo=FALSE}
+```{r,fig.align='center', fig.retina=2, fig.height=5, fig.width=5, echo=FALSE}
 spoint <- data.frame(x=1,y=1)
 symbol_points <- list()
 for (i in 1:25) {
@@ -55,7 +56,7 @@ for (i in 1:25) {
         geom_point(shape=i, size=5) +
         ggtitle(sprintf('shape=%s',i)) + 
         theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
-        xlab('') + ylab('')
+        xlab(NULL) + ylab(NULL)
 }
 symbols <- do.call(arrangeGrob,symbol_points)
 symbols
@@ -130,58 +131,53 @@ ggplot(starmovies, aes(x=votes, y=rating)) + geom_point(color='red') +
 ```
 
 
-## The Final Challenge:
+## Which Type of Film Cost the Most in Average?
 
-Which type of film cost the most, averagely?
+We only choose the movies with single type to simplify the question.
 
 ```{r}
 movietype <- colnames(movies)[18:24]
 movies1_singletype <- movies1[rowSums(movies1[, movietype]) == 1,] # remove multi-typed
+movietype_alt <- c(movietype[length(movietype)], movietype[-length(movietype)]) 
+# convert multiple dummies into one factor as grouping var
+# a little matrix operation will do the trick
+dummies <- as.matrix(movies1_singletype[, movietype_alt])
+movies1_singletype$Type <- factor(dummies %*% (1:length(movietype_alt)), labels=movietype_alt)
+
+# Compute the Average Budget of Each Type
+tapply(movies1_singletype$budget, movies1_singletype$Type, mean)
+```
+
+
+## Determine the variation
+
+The first factor level of movietype, `Short`, is represented as the intercept term. 
+
+```{r}
+lmfit <- lm(as.formula("budget ~ Type"), movies1_singletype)
+summary(lmfit)$coef
+```
+
+
+## Another way to estimate the coefficients
+
+The last predictor, `Short` is combined into the intercept term.
+
+```{r}
 # mean(movies1_singletype[movies1_singletype$Animation == 1, 'budget'])
 lmfit <- lm(as.formula(paste('budget ~', paste(movietype, collapse=' + '))), 
             movies1_singletype)
-summary(lmfit)$coef # where is type 'Short'?
+summary(lmfit)$coef
 ```
 
 
-## Try to plot this!
+## Draw the regression lines of each type
 
 What is the association between cost and rating, conditional on type?
 
-```{r echo=FALSE}
-dummies <- as.matrix(movies1_singletype[, movietype])
-movies1_singletype$Type <- factor(dummies %*% (1:length(movietype)), labels=movietype) 
-ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
-  geom_point() +
-  stat_smooth(method=lm, se=FALSE, fullrange=FALSE, size=1.5) +
-  scale_color_discrete(name='Movie Type: # of samples', labels=paste(levels(movies1_singletype$Type), ': ', table(movies1_singletype$Type)))
-```
-
-
-## A Hint:
-You need to convert multiple dummies into one factor
-
-+ Before:
-```{r echo=FALSE}
-dd <- as.matrix(movies1_singletype[, movietype])
-head(dd)
-```
-+ After:
-```{r echo=FALSE}
-head(factor(dd %*% (1:length(movietype)), labels=movietype))
-```
-
-
-## Exercise: Answer
-```{r eval=FALSE}
-# convert multiple dummies into one factor as grouping var
-# a little matrix operation will do the trick
-dummies <- as.matrix(movies1_singletype[, movietype])
-movies1_singletype$Type <- factor(dummies %*% (1:length(movietype)), labels=movietype)
-
-# The rest of the task is rather simple
-ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
-  geom_point() +
+```{r}
+movies1_reg_plot <- ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) + 
+  geom_point(shape=1) +
   
   # set fullrange=T will extend the fitted line outside the sample range
   stat_smooth(method=lm, se=FALSE, fullrange=FALSE, size=1.5) +
@@ -193,6 +189,40 @@ ggplot(movies1_singletype, aes(x=budget, y=rating, color=Type)) +
 ```
 
 
+## Output 
+
+```{r}
+movies1_reg_plot
+```
+
+
+## Exercise: Temprature and RH
+
+Draw a scatter plot of Temprature and RH in Taipei, Taichung, 
+Kaoshiung and Hualien in 2013-05, 2014-05 and 2015-05.
+Furthermore, each location has its own color and regression line.
+
+Hint: Use following code to read all data and slice the data you want.
+
+```{r}
+source("R/get_weather_all.R")
+weather_all <- get_weather_all()
+may <- weather_all[weather_all$month == "May",]
+```
+
+## Answer
+
+```{r}
+ggplot(may, aes(x=RH, y=Temperature, color=location)) + 
+    geom_point(shape=1) + 
+    stat_smooth(method = lm, size = 1.5)
+```
+
+```{r include=FALSE}
+lmfit <- lm(Temperature ~ RH*location, may)
+summary(lmfit)
+```
+
 ## The regression problem behind the scene
 ```{r}
 interact_terms <- paste(paste(movietype, '*budget', sep=''), collapse=' + ')
@@ -200,20 +230,18 @@ lmfit <- lm(as.formula(paste('rating ~', interact_terms)), movies1_singletype)
 tail(summary(lmfit)$coef)
 ```
 + None of the interactive term is statistically significant, indeed
-+ **Visualization != Analysis** (Our eyes were not born to work on numbers.)
-+ Plots can be easily manipluated to be misleading, accidentally or **on purpose**
++ <span class="red">Visualization != Analysis</span> (Our eyes were not born to work on numbers.)
++ Plots can be easily manipluated to be misleading, accidentally or <span class="red">on purpose</span>
 
 
 ## References
 + [ggplot2 Official document](http://ggplot2.org/)
 + [R Graphics Cookbook](http://www.cookbook-r.com/Graphs/)
-+ [Source code of this slide](https://github.com/everdark/lecture_ggplot)
-    + The source is tested only on OS X 10.9.3
 + [Introduction to Programming R](https://github.com/everdark/lecture_rintro)
     + Knowlege of general programming is requisite
 
-# Bonus: Annotation
 
+# Bonus: Annotation
 
 ## Annotation
 ```{r}
@@ -322,7 +350,7 @@ drawPoint <- function(i) {
     geom_point(shape=i, size=5) +
     ggtitle(sprintf('shape=%s',i)) + 
     theme(axis.text.x=element_blank(), axis.text.y=element_blank()) +
-    xlab('') + ylab('')
+    xlab(NULL) + ylab(NULL)
   }
 drawPoint(25)
 ```
