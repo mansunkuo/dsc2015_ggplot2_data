@@ -1,7 +1,9 @@
 # dsc2015_ggplot2_data
 
 Related works of 
-[Taiwan Data Science Conference 2015](http://datasci.tw/)
+[Taiwan Data Science Conference 2015](http://datasci.tw/).
+The sample data is merged into 
+[ggplot2_lecture_dsc2015](https://github.com/everdark/ggplot2_lecture_dsc2015).
 
 ## Sample Data
 
