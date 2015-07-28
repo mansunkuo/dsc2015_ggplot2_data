@@ -1,4 +1,4 @@
-# dsc2015
+# dsc2015_ggplot2_data
 
 Related works of 
 [Taiwan Data Science Conference 2015](http://datasci.tw/)
